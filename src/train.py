@@ -28,14 +28,15 @@ if len(sys.argv) > 4:
   print("Model: " + sys.argv[4])
   model = int(sys.argv[4])
 
+parameter_str = "P"
+for i in range(1, len(sys.argv)):
+  parameter_str += "_" + sys.argv[i]
+
+print(parameter_str)
 
 from utils import make_env, Storage, orthogonal_init
-# Define environment
-# check the utils.py file for info on arguments
-env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name = env_name)
-#print('Observation space:', env.observation_space.shape)
-#print('Action space:', env.action_space.n)
 
+env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name = env_name)
 
 import torch
 import torch.nn as nn
@@ -81,17 +82,9 @@ class Policy(nn.Module):
 # Define environment
 # check the utils.py file for info on arguments
 env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name = env_name)
-#print('Observation space:', env.observation_space)
-#print('Action space:', env.action_space.n)
-
-
 
 in_channels = 3
 nr_features = 256
-
-#print('in_channels value ' + str(in_channels))
-# Define network
-#encoder = Encoder(in_channels, nr_features)
 
 from Impala import ImpalaModel
 
@@ -216,4 +209,4 @@ print('Average return:', total_reward)
 
 # Save frames as video
 frames = torch.stack(frames)
-imageio.mimsave('vid.mp4', frames, fps=25)
+imageio.mimsave(parameter_str + '_vid.mp4', frames, fps=25)
