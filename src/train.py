@@ -1,10 +1,10 @@
 # Hyperparameters
-total_steps = 0.5e6
+total_steps = 25e6
 num_envs = 64
 num_levels = 6
 num_steps = 256
 num_epochs = 3
-batch_size = 128
+batch_size = 1024#128, uncomment for low VRAM
 eps = .2
 grad_eps = .5
 value_coef = .5
