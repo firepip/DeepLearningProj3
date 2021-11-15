@@ -1,7 +1,7 @@
 # Hyperparameters
 total_steps = 25e6
 num_envs = 64
-num_levels = 6
+num_levels = 10000
 num_steps = 256
 num_epochs = 3
 batch_size = 1024#128, uncomment for low VRAM
@@ -14,7 +14,7 @@ gamma = 0.999
 from utils import make_env, Storage, orthogonal_init
 # Define environment
 # check the utils.py file for info on arguments
-env = make_env(num_envs, num_levels=num_levels)
+env = make_env(num_envs, num_levels=num_levels, gamma=gamma)
 print('Observation space:', env.observation_space.shape)
 print('Action space:', env.action_space.n)
 
@@ -140,7 +140,7 @@ class Policy(nn.Module):
 
 # Define environment
 # check the utils.py file for info on arguments
-env = make_env(num_envs, num_levels=num_levels)
+env = make_env(num_envs, num_levels=num_levels, gamma=gamma)
 print('Observation space:', env.observation_space)
 print('Action space:', env.action_space.n)
 
@@ -244,7 +244,7 @@ torch.save(policy.state_dict, 'checkpoint.pt')
 import imageio
 
 # Make evaluation environment
-eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma)
+eval_env = make_env(num_envs, start_level=0, num_levels=num_levels, gamma=gamma)
 obs = eval_env.reset()
 
 frames = []
