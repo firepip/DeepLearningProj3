@@ -15,5 +15,6 @@
  #Arg2 = Number of levels
  #Arg3 = Game, default = starpilot
  #Arg4 = Model
- python3 train.py 25 1000 starpilot 1
+ #Arg5 = Data augmentation strategy, 0=identity, 1=crop, 2=translate, 3=cutout, 4=colormix, 5=random sequences of all
+ python3 train.py 25 100000 starpilot 1 5
  echo "Done..."

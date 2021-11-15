@@ -1,4 +1,6 @@
 import sys
+from random import randrange
+
 # Hyperparameters
 total_steps = 25e6
 if len(sys.argv) > 1:
@@ -12,7 +14,7 @@ if len(sys.argv) > 2:
 
 num_steps = 256
 num_epochs = 3
-batch_size = 1024#128#, uncomment for low VRAM
+batch_size = 1024#, uncomment for low VRAM
 eps = .2
 grad_eps = .5
 value_coef = .5
@@ -27,6 +29,17 @@ model = 1
 if len(sys.argv) > 4:
   print("Model: " + sys.argv[4])
   model = int(sys.argv[4])
+
+augmentationMode = 5
+if len(sys.argv) > 5:
+  print("Augmentation mode: " + sys.argv[5])
+  augmentationMode = int(sys.argv[5])
+
+randomAugmentation = False
+
+if augmentationMode > 4:
+  augmentationMode = randrange(5)
+  randomAugmentation = True
 
 parameter_str = "P"
 for i in range(1, len(sys.argv)):
@@ -109,8 +122,13 @@ storage = Storage(
 )
 
 
+from augment import setAugmentationMode, augment
+
+setAugmentationMode(augmentationMode)
+
+
 # Run training
-obs = env.reset()
+obs = augment(env.reset())
 #obs = augment(obs)
 step = 0
 while step < total_steps:
@@ -123,11 +141,16 @@ while step < total_steps:
     # Take step in environment
     next_obs, reward, done, info = env.step(action)
 
+    # Update augmentation mode if we have random augmentations
+    if (randomAugmentation and randrange(3) == 0):
+      augmentationMode = randrange(5)
+      setAugmentationMode(augmentationMode)
+
     # Store data
     storage.store(obs, action, reward, done, info, log_prob, value)
     
     # Update current observation
-    obs = next_obs
+    obs = augment(next_obs)
 
   # Add the last observation to collected data
   _, _, value = policy.act(obs)
@@ -183,7 +206,7 @@ import imageio
 
 # Make evaluation environment
 eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma, env_name = env_name)
-obs = eval_env.reset()
+obs = augment(eval_env.reset())
 
 frames = []
 total_reward = []
@@ -197,6 +220,13 @@ for _ in range(512):
 
   # Take step in environment
   obs, reward, done, info = eval_env.step(action)
+
+  # Update augmentation mode if we have random augmentations
+  if (randomAugmentation and randrange(3) == 0):
+    augmentationMode = randrange(5)
+    setAugmentationMode(augmentationMode)
+
+  obs = augment(obs)
   total_reward.append(torch.Tensor(reward))
 
   # Render environment and store
