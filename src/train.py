@@ -221,12 +221,6 @@ for _ in range(512):
   # Take step in environment
   obs, reward, done, info = eval_env.step(action)
 
-  # Update augmentation mode if we have random augmentations
-  if (randomAugmentation and randrange(3) == 0):
-    augmentationMode = randrange(5)
-    setAugmentationMode(augmentationMode)
-
-  obs = obs
   total_reward.append(torch.Tensor(reward))
 
   # Render environment and store
