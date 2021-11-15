@@ -1,106 +1,46 @@
+import sys
 # Hyperparameters
 total_steps = 25e6
+if len(sys.argv) > 1:
+    print("Total steps: " + sys.argv[1])
+    total_steps = int(sys.argv[1])
 num_envs = 64
 num_levels = 10000
+if len(sys.argv) > 2:
+  print("Num levels: " + sys.argv[2])
+  num_levels = int(sys.argv[2])
+
 num_steps = 256
 num_epochs = 3
-batch_size = 1024#128, uncomment for low VRAM
+batch_size = 128#, uncomment for low VRAM
 eps = .2
 grad_eps = .5
 value_coef = .5
 entropy_coef = .01
 gamma = 0.999
+env_name='starpilot'
+if len(sys.argv) > 3:
+  print("Game: " + sys.argv[3])
+  env_name = sys.argv[3]
+
+model = 1
+if len(sys.argv) > 4:
+  print("Model: " + sys.argv[4])
+  model = int(sys.argv[4])
+
 
 from utils import make_env, Storage, orthogonal_init
 # Define environment
 # check the utils.py file for info on arguments
-env = make_env(num_envs, num_levels=num_levels, gamma=gamma)
-print('Observation space:', env.observation_space.shape)
-print('Action space:', env.action_space.n)
+env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name = env_name)
+#print('Observation space:', env.observation_space.shape)
+#print('Action space:', env.action_space.n)
 
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from utils import make_env, Storage, orthogonal_init
-
-
-class Flatten(nn.Module):
-    def forward(self, x):
-        return x.view(x.size(0), -1)
-
-
-class Encoder(nn.Module):
-  def __init__(self, in_channels, feature_dim):
-    super().__init__()
-    self.layers = nn.Sequential(
-        nn.Conv2d(in_channels=in_channels, out_channels=32, kernel_size=8, stride=4), nn.ReLU(),
-        nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2), nn.ReLU(),
-        nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1), nn.ReLU(),
-        Flatten(),
-        nn.Linear(in_features=1024, out_features=feature_dim), nn.ReLU()
-    )
-    self.apply(orthogonal_init)
-
-  def forward(self, x):
-    return self.layers(x)
-
-def xavier_uniform_init(module, gain=1.0):
-    if isinstance(module, nn.Linear) or isinstance(module, nn.Conv2d):
-        nn.init.xavier_uniform_(module.weight.data, gain)
-        nn.init.constant_(module.bias.data, 0)
-    return module
-    
-class ResidualBlock(nn.Module):
-    def __init__(self,
-                 in_channels):
-        super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=3, stride=1, padding=1)
-
-    def forward(self, x):
-        out = nn.ReLU()(x)
-        out = self.conv1(out)
-        out = nn.ReLU()(out)
-        out = self.conv2(out)
-        return out + x
-        
-class ImpalaBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(ImpalaBlock, self).__init__()
-        self.conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1)
-        self.res1 = ResidualBlock(out_channels)
-        self.res2 = ResidualBlock(out_channels)
-
-    def forward(self, x):
-        x = self.conv(x)
-        x = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)(x)
-        x = self.res1(x)
-        x = self.res2(x)
-        return x
-
-class ImpalaModel(nn.Module):
-    def __init__(self,
-                 in_channels, out_channels = 256,
-                 **kwargs):
-        super(ImpalaModel, self).__init__()
-        self.block1 = ImpalaBlock(in_channels=in_channels, out_channels=16)
-        self.block2 = ImpalaBlock(in_channels=16, out_channels=32)
-        self.block3 = ImpalaBlock(in_channels=32, out_channels=64)
-        self.fc = nn.Linear(in_features=64 * 8 * 8, out_features=out_channels)
-
-        self.output_dim = out_channels
-        self.apply(xavier_uniform_init)
-
-    def forward(self, x):
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = nn.ReLU()(x)
-        x = Flatten()(x)
-        x = self.fc(x)
-        x = nn.ReLU()(x)
-        return x
 
 
 class Policy(nn.Module):
@@ -140,24 +80,28 @@ class Policy(nn.Module):
 
 # Define environment
 # check the utils.py file for info on arguments
-env = make_env(num_envs, num_levels=num_levels, gamma=gamma)
-print('Observation space:', env.observation_space)
-print('Action space:', env.action_space.n)
+env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name = env_name)
+#print('Observation space:', env.observation_space)
+#print('Action space:', env.action_space.n)
 
 
 
 in_channels = 3
 nr_features = 256
 
-print('in_channels value ' + str(in_channels))
+#print('in_channels value ' + str(in_channels))
 # Define network
 #encoder = Encoder(in_channels, nr_features)
-encoder = ImpalaModel(in_channels, nr_features)
-print('Test1')
+
+from Impala import ImpalaModel
+
+if model == 1:
+  encoder = ImpalaModel(in_channels, nr_features)
+#TODO add more models
+
 policy = Policy(encoder, nr_features, env.action_space.n )
-print("Test2")
 policy.cuda()
-print('Test3')
+
 # Define optimizer
 # these are reasonable values but probably not optimal
 optimizer = torch.optim.Adam(policy.parameters(), lr=5e-4, eps=1e-5)
@@ -174,6 +118,7 @@ storage = Storage(
 
 # Run training
 obs = env.reset()
+#obs = augment(obs)
 step = 0
 while step < total_steps:
   # Use policy to collect data for num_steps steps
@@ -244,7 +189,7 @@ torch.save(policy.state_dict, 'checkpoint.pt')
 import imageio
 
 # Make evaluation environment
-eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma)
+eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma, env_name = env_name)
 obs = eval_env.reset()
 
 frames = []

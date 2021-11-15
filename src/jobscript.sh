@@ -11,5 +11,9 @@
  #BSUB -B 
  #BSUB -N 
  echo "Running script..."
- python3 train.py > output.out
+ #Arg1 = Total steps
+ #Arg2 = Number of levels
+ #Arg3 = Game, default = starpilot
+ #Arg4 = Model
+ python3 train.py 25e6 1000 starpilot 1
  echo "Done..."
