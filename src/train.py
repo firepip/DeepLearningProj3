@@ -244,7 +244,7 @@ torch.save(policy.state_dict, 'checkpoint.pt')
 import imageio
 
 # Make evaluation environment
-eval_env = make_env(num_envs, start_level=0, num_levels=num_levels, gamma=gamma)
+eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma)
 obs = eval_env.reset()
 
 frames = []
