@@ -169,7 +169,7 @@ while step < total_steps:
       b_obs, b_action, b_log_prob, b_value, b_returns, b_advantage = batch
 
       # Get current policy outputs
-      new_dist, new_value, _ = policy(b_obs)
+      new_dist, new_value, _ = policy(augment(b_obs))
       new_log_prob = new_dist.log_prob(b_action)
 
       ratio = (new_log_prob - b_log_prob).exp()
@@ -206,7 +206,7 @@ import imageio
 
 # Make evaluation environment
 eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma, env_name = env_name)
-obs = augment(eval_env.reset())
+obs = eval_env.reset()
 
 frames = []
 total_reward = []
@@ -226,7 +226,7 @@ for _ in range(512):
     augmentationMode = randrange(5)
     setAugmentationMode(augmentationMode)
 
-  obs = augment(obs)
+  obs = obs
   total_reward.append(torch.Tensor(reward))
 
   # Render environment and store
