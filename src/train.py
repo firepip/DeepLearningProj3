@@ -2,8 +2,8 @@ import sys
 # Hyperparameters
 total_steps = 25e6
 if len(sys.argv) > 1:
-    print("Total steps: " + sys.argv[1])
-    total_steps = int(sys.argv[1])
+    total_steps = int(int(sys.argv[1]) * 1e6)
+    print("Total steps: " + str(total_steps))
 num_envs = 64
 num_levels = 10000
 if len(sys.argv) > 2:

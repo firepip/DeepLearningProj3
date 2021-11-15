@@ -24,7 +24,7 @@ def make_env(
 	env_name='starpilot',
 	start_level=0,
 	num_levels=100,
-	use_backgrounds=False,
+	use_backgrounds=True,
 	normalize_obs=False,
 	normalize_reward=True,
 	seed=0,
