@@ -9,47 +9,47 @@ if len(sys.argv) > 1:
 num_envs = 64
 num_levels = 10000
 if len(sys.argv) > 2:
-  print("Num levels: " + sys.argv[2])
-  num_levels = int(sys.argv[2])
+    print("Num levels: " + sys.argv[2])
+    num_levels = int(sys.argv[2])
 
 num_steps = 256
 num_epochs = 3
-batch_size = 1024#, uncomment for low VRAM
+batch_size = 1024  # , uncomment for low VRAM
 eps = .2
 grad_eps = .5
 value_coef = .5
 entropy_coef = .01
 gamma = 0.999
-env_name='starpilot'
+env_name = 'starpilot'
 if len(sys.argv) > 3:
-  print("Game: " + sys.argv[3])
-  env_name = sys.argv[3]
+    print("Game: " + sys.argv[3])
+    env_name = sys.argv[3]
 
 model = 1
 if len(sys.argv) > 4:
-  print("Model: " + sys.argv[4])
-  model = int(sys.argv[4])
+    print("Model: " + sys.argv[4])
+    model = int(sys.argv[4])
 
 augmentationMode = 5
 if len(sys.argv) > 5:
-  print("Augmentation mode: " + sys.argv[5])
-  augmentationMode = int(sys.argv[5])
+    print("Augmentation mode: " + sys.argv[5])
+    augmentationMode = int(sys.argv[5])
 
 randomAugmentation = False
 
 if augmentationMode > 4:
-  augmentationMode = randrange(5)
-  randomAugmentation = True
+    augmentationMode = randrange(5)
+    randomAugmentation = True
 
 parameter_str = "P"
 for i in range(1, len(sys.argv)):
-  parameter_str += "_" + sys.argv[i]
+    parameter_str += "_" + sys.argv[i]
 
 print(parameter_str)
 
 from utils import make_env, Storage, orthogonal_init
 
-env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name = env_name)
+env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name=env_name)
 
 import torch
 import torch.nn as nn
@@ -58,43 +58,43 @@ from utils import make_env, Storage, orthogonal_init
 
 
 class Policy(nn.Module):
-  def __init__(self, encoder, feature_dim, num_actions):
-    super().__init__()
-    self.encoder = encoder
-    self.policy = orthogonal_init(nn.Linear(feature_dim, num_actions), gain=.01)
-    self.value = orthogonal_init(nn.Linear(feature_dim, 1), gain=1.)
+    def __init__(self, encoder, feature_dim, num_actions):
+        super().__init__()
+        self.encoder = encoder
+        self.policy = orthogonal_init(nn.Linear(feature_dim, num_actions), gain=.01)
+        self.value = orthogonal_init(nn.Linear(feature_dim, 1), gain=1.)
 
-  def act(self, x):
-    with torch.no_grad():
-      x = x.cuda().contiguous()
-      dist, value, maxAction = self.forward(x)
-      action = dist.sample()
-      log_prob = dist.log_prob(action)
-    
-    return action.cpu(), log_prob.cpu(), value.cpu()
+    def act(self, x):
+        with torch.no_grad():
+            x = x.cuda().contiguous()
+            dist, value, maxAction = self.forward(x)
+            action = dist.sample()
+            log_prob = dist.log_prob(action)
 
-  def actMax(self, x):
-    with torch.no_grad():
-      x = x.cuda().contiguous()
-      dist, value, maxAction = self.forward(x)
-      action = maxAction
-      log_prob = dist.log_prob(action)
-    
-    return action.cpu(), log_prob.cpu(), value.cpu()
+        return action.cpu(), log_prob.cpu(), value.cpu()
 
-  def forward(self, x):
-    x = self.encoder(x)
-    logits = self.policy(x)
-    value = self.value(x).squeeze(1)
-    maxAction = logits.argmax(dim=1)
-    dist = torch.distributions.Categorical(logits=logits)
+    def actMax(self, x):
+        with torch.no_grad():
+            x = x.cuda().contiguous()
+            dist, value, maxAction = self.forward(x)
+            action = maxAction
+            log_prob = dist.log_prob(action)
 
-    return dist, value, maxAction
+        return action.cpu(), log_prob.cpu(), value.cpu()
+
+    def forward(self, x):
+        x = self.encoder(x)
+        logits = self.policy(x)
+        value = self.value(x).squeeze(1)
+        maxAction = logits.argmax(dim=1)
+        dist = torch.distributions.Categorical(logits=logits)
+
+        return dist, value, maxAction
 
 
 # Define environment
 # check the utils.py file for info on arguments
-env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name = env_name)
+env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name=env_name)
 
 in_channels = 3
 nr_features = 256
@@ -102,10 +102,10 @@ nr_features = 256
 from Impala import ImpalaModel
 
 if model == 1:
-  encoder = ImpalaModel(in_channels, nr_features)
-#TODO add more models
+    encoder = ImpalaModel(in_channels, nr_features)
+# TODO add more models
 
-policy = Policy(encoder, nr_features, env.action_space.n )
+policy = Policy(encoder, nr_features, env.action_space.n)
 policy.cuda()
 
 # Define optimizer
@@ -121,83 +121,81 @@ storage = Storage(
     gamma
 )
 
-
 from augment import setAugmentationMode, augment
 
 setAugmentationMode(augmentationMode)
 
-
 # Run training
 obs = augment(env.reset())
-#obs = augment(obs)
+# obs = augment(obs)
 step = 0
 while step < total_steps:
-  # Use policy to collect data for num_steps steps
-  policy.eval()
-  for _ in range(num_steps):
-    # Use policy
-    action, log_prob, value = policy.act(obs)
-    
-    # Take step in environment
-    next_obs, reward, done, info = env.step(action)
+    # Use policy to collect data for num_steps steps
+    policy.eval()
+    for _ in range(num_steps):
+        # Use policy
+        action, log_prob, value = policy.act(obs)
 
-    # Update augmentation mode if we have random augmentations
-    if (randomAugmentation and randrange(3) == 0):
-      augmentationMode = randrange(5)
-      setAugmentationMode(augmentationMode)
+        # Take step in environment
+        next_obs, reward, done, info = env.step(action)
 
-    # Store data
-    storage.store(obs, action, reward, done, info, log_prob, value)
-    
-    # Update current observation
-    obs = augment(next_obs)
+        # Update augmentation mode if we have random augmentations
+        if (randomAugmentation and randrange(3) == 0):
+            augmentationMode = randrange(5)
+            setAugmentationMode(augmentationMode)
 
-  # Add the last observation to collected data
-  _, _, value = policy.act(obs)
-  storage.store_last(obs, value)
+        # Store data
+        storage.store(obs, action, reward, done, info, log_prob, value)
 
-  # Compute return and advantage
-  storage.compute_return_advantage()
+        # Update current observation
+        obs = augment(next_obs)
 
-  # Optimize policy
-  policy.train()
-  for epoch in range(num_epochs):
+    # Add the last observation to collected data
+    _, _, value = policy.act(obs)
+    storage.store_last(obs, value)
 
-    # Iterate over batches of transitions
-    generator = storage.get_generator(batch_size)
-    for batch in generator:
-      b_obs, b_action, b_log_prob, b_value, b_returns, b_advantage = batch
+    # Compute return and advantage
+    storage.compute_return_advantage()
 
-      # Get current policy outputs
-      new_dist, new_value, _ = policy(augment(b_obs))
-      new_log_prob = new_dist.log_prob(b_action)
+    # Optimize policy
+    policy.train()
+    for epoch in range(num_epochs):
 
-      ratio = (new_log_prob - b_log_prob).exp()
-      surr1 = ratio * b_advantage
-      surr2 = torch.clamp(ratio, 1.0 - eps, 1.0 + eps) * b_advantage
+        # Iterate over batches of transitions
+        generator = storage.get_generator(batch_size)
+        for batch in generator:
+            b_obs, b_action, b_log_prob, b_value, b_returns, b_advantage = batch
 
-      # Clipped policy objective
-      pi_loss = - torch.min(surr1, surr2).mean()
-      # Clipped value function objective
-      value_loss = (new_value - b_returns ).pow(2).mean()
+            # Get current policy outputs
+            new_dist, new_value, _ = policy(augment(b_obs))
+            new_log_prob = new_dist.log_prob(b_action)
 
-      # Entropy loss
-      entropy_loss = torch.mean(torch.exp(new_log_prob) * new_log_prob)
+            ratio = (new_log_prob - b_log_prob).exp()
+            surr1 = ratio * b_advantage
+            surr2 = torch.clamp(ratio, 1.0 - eps, 1.0 + eps) * b_advantage
 
-      # Backpropagate losses
-      loss = pi_loss + value_coef * value_loss + entropy_coef * entropy_loss
-      loss.backward()
+            # Clipped policy objective
+            pi_loss = - torch.min(surr1, surr2).mean()
+            # Clipped value function objective
+            value_loss = (new_value - b_returns).pow(2).mean()
 
-      # Clip gradients
-      torch.nn.utils.clip_grad_norm_(policy.parameters(), grad_eps)
+            # Entropy loss
+            entropy_loss = torch.mean(torch.exp(new_log_prob) * new_log_prob)
 
-      # Update policy
-      optimizer.step()
-      optimizer.zero_grad()
+            # Backpropagate losses
+            loss = pi_loss + value_coef * value_loss + entropy_coef * entropy_loss
+            loss.backward()
 
-  # Update stats
-  step += num_envs * num_steps
-  print(f'Step: {step}\tMean reward: {storage.get_reward()}')
+            # Clip gradients
+            torch.nn.utils.clip_grad_norm_(policy.parameters(), grad_eps)
+
+            # Update policy
+            optimizer.step()
+            optimizer.zero_grad()
+
+    # Update stats
+    step += num_envs * num_steps
+    print(f'Step: {step}\tMean reward: {storage.get_reward()}')
 
 print('Completed training!')
 torch.save(policy.state_dict, 'checkpoint.pt')
@@ -205,7 +203,7 @@ torch.save(policy.state_dict, 'checkpoint.pt')
 import imageio
 
 # Make evaluation environment
-eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma, env_name = env_name)
+eval_env = make_env(num_envs, start_level=num_levels, num_levels=num_levels, gamma=gamma, env_name=env_name)
 obs = eval_env.reset()
 
 frames = []
@@ -214,18 +212,17 @@ total_reward = []
 # Evaluate policy
 policy.eval()
 for _ in range(512):
+    # Use policy
+    action, log_prob, value = policy.actMax(obs)
 
-  # Use policy
-  action, log_prob, value = policy.actMax(obs)
+    # Take step in environment
+    obs, reward, done, info = eval_env.step(action)
 
-  # Take step in environment
-  obs, reward, done, info = eval_env.step(action)
+    total_reward.append(torch.Tensor(reward))
 
-  total_reward.append(torch.Tensor(reward))
-
-  # Render environment and store
-  frame = (torch.Tensor(eval_env.render(mode='rgb_array'))*255.).byte()
-  frames.append(frame)
+    # Render environment and store
+    frame = (torch.Tensor(eval_env.render(mode='rgb_array')) * 255.).byte()
+    frames.append(frame)
 
 # Calculate average return
 total_reward = torch.stack(total_reward).sum(0).mean(0)
