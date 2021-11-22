@@ -18,7 +18,7 @@ if len(sys.argv) > 2:
 eval_frequency = 1e6
 num_steps = 256
 num_epochs = 3
-batch_size = 128#1024  # , uncomment for low VRAM
+batch_size = 1024  # , uncomment for low VRAM
 eps = .2
 grad_eps = .5
 value_coef = .5
