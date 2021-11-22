@@ -64,24 +64,42 @@ def colormix(frame):
     frame[2] = frame[2,:] * blueWeight
     return frame
 
-AugmentationFunc = identity
+AugmentationFuncArr = []
 
-def setAugmentationMode(mode):
-    global AugmentationFunc
-    if mode == 0:
-        AugmentationFunc = identity
-    elif mode == 1:
-        AugmentationFunc = crop
-    elif mode == 2:
-        AugmentationFunc = translate
-    elif mode == 3:
-        AugmentationFunc = cutout
-    elif mode == 4:
-        AugmentationFunc = colormix
+def setAugmentationMode(mode, environments):
+    global AugmentationFuncArr
+    AugmentationFuncArr = []
+    for i in range(environments):
+        if mode == 0:
+            AugmentationFuncArr.append(identity)
+        elif mode == 1:
+            AugmentationFuncArr.append(crop)
+        elif mode == 2:
+            AugmentationFuncArr.append(translate)
+        elif mode == 3:
+            AugmentationFuncArr.append(cutout)
+        elif mode == 4:
+            AugmentationFuncArr.append(colormix)
+
+def setRandomAugmentationMode(environments):
+    global AugmentationFuncArr
+    AugmentationFuncArr = []
+    for i in range(environments):
+        mode = randrange(5)
+        if mode == 0:
+            AugmentationFuncArr.append(identity)
+        elif mode == 1:
+            AugmentationFuncArr.append(crop)
+        elif mode == 2:
+            AugmentationFuncArr.append(translate)
+        elif mode == 3:
+            AugmentationFuncArr.append(cutout)
+        elif mode == 4:
+            AugmentationFuncArr.append(colormix)
 
 def augment(obs):
     for i in range(obs.shape[0]):
-        obs[i] = AugmentationFunc(obs[i])
+        obs[i] = AugmentationFuncArr[i % len(AugmentationFuncArr)](obs[i])
     return obs
 
 def testCrop():

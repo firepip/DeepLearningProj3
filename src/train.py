@@ -19,7 +19,7 @@ eps = .2
 grad_eps = .5
 value_coef = .5
 entropy_coef = .01
-gamma = 0.999
+gamma = 0.99
 env_name = 'starpilot'
 if len(sys.argv) > 3:
     print("Game: " + sys.argv[3])
@@ -38,7 +38,6 @@ if len(sys.argv) > 5:
 randomAugmentation = False
 
 if augmentationMode > 4:
-    augmentationMode = randrange(5)
     randomAugmentation = True
 
 parameter_str = "P"
@@ -121,10 +120,14 @@ storage = Storage(
     gamma
 )
 
-from augment import setAugmentationMode, augment
+from augment import setRandomAugmentationMode, setAugmentationMode, augment
 
-setAugmentationMode(augmentationMode)
 
+
+if (randomAugmentation):
+    setRandomAugmentationMode(num_envs)
+else:
+    setAugmentationMode(augmentationMode, num_envs)
 # Run training
 obs = augment(env.reset())
 # obs = augment(obs)
@@ -141,8 +144,7 @@ while step < total_steps:
 
         # Update augmentation mode if we have random augmentations
         if (randomAugmentation and randrange(3) == 0):
-            augmentationMode = randrange(5)
-            setAugmentationMode(augmentationMode)
+            setRandomAugmentationMode(num_envs)
 
         # Store data
         storage.store(obs, action, reward, done, info, log_prob, value)
