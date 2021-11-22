@@ -66,6 +66,15 @@ def colormix(frame):
 
 AugmentationFuncArr = []
 
+RemoveModeFromRandom = False
+ModeToRemove = 0
+
+def setHoldoutAgumentation(mode):
+    global RemoveModeFromRandom
+    global ModeToRemove
+    ModeToRemove = mode
+    RemoveModeFromRandom = True
+
 def setAugmentationMode(mode, environments):
     global AugmentationFuncArr
     AugmentationFuncArr = []
@@ -83,9 +92,14 @@ def setAugmentationMode(mode, environments):
 
 def setRandomAugmentationMode(environments):
     global AugmentationFuncArr
+    global RemoveModeFromRandom
+    global ModeToRemove
     AugmentationFuncArr = []
     for i in range(environments):
         mode = randrange(5)
+        if RemoveModeFromRandom:
+            while(mode == ModeToRemove):
+                mode = randrange(5)
         if mode == 0:
             AugmentationFuncArr.append(identity)
         elif mode == 1:
