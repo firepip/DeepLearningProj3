@@ -16,5 +16,6 @@
  #Arg3 = Game, default = starpilot
  #Arg4 = Model
  #Arg5 = Data augmentation strategy, 0=identity, 1=crop, 2=translate, 3=cutout, 4=colormix, 5=random sequences of all
- python3 train.py 10 25000 starpilot 1 0
+ #Arg6 = Number of features (output of IMPALA)
+ python3 train.py 10 25000 starpilot 1 0 128
  echo "Done..."

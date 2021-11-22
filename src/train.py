@@ -38,6 +38,10 @@ if len(sys.argv) > 5:
     print("Augmentation mode: " + sys.argv[5])
     augmentationMode = int(sys.argv[5])
 
+nr_features = 256
+if len(sys.argv) > 6:
+    print("nr_features: " + sys.argv[6])
+    nr_features = sys.argv[6]
 randomAugmentation = False
 
 if augmentationMode > 4:
@@ -99,7 +103,6 @@ class Policy(nn.Module):
 env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name=env_name)
 
 in_channels = 3
-nr_features = 256
 
 from Impala import ImpalaModel
 
@@ -110,6 +113,9 @@ if model == 2:
     encoder = LeakyImpalaModel(in_channels, nr_features)
 
 if model == 3:
+    encoder = FiveBlocksImpala(in_channels, nr_features)
+
+if model == 4:
     encoder = FiveBlocksImpala(in_channels, nr_features)
 
 policy = Policy(encoder, nr_features, env.action_space.n)
@@ -221,7 +227,7 @@ total_reward = []
 
 # Evaluate policy
 policy.eval()
-for _ in range(512):
+for _ in range(2048):
     # Use policy
     action, log_prob, value = policy.actMax(obs)
 
@@ -237,7 +243,7 @@ for _ in range(512):
 # Calculate average return
 total_reward = torch.stack(total_reward).sum(0).mean(0)
 print('Average return:', total_reward)
-
+print('Generating video' + parameter_str + 'total_reward' + total_reward + '_vid.mp4')
 # Save frames as video
 frames = torch.stack(frames)
-imageio.mimsave('10000levels' + parameter_str + 'total_rewards' + total_reward + '_vid.mp4', frames, fps=25)
+imageio.mimsave(parameter_str + 'total_reward' + total_reward + '_vid.mp4', frames, fps=25)
