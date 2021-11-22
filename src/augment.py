@@ -114,20 +114,20 @@ def testTranslate():
     obs = env.reset()
     for i in range(obs.shape[0]):
         frame = (obs[0,:]*255.)
-        imageio.imsave("crop" + str(i) + ".png",translate(frame).T.byte())
+        imageio.imsave("translate" + str(i) + ".png",translate(frame).T.byte())
 
 def testCutout():
     env = make_env(4, num_levels=10, gamma=0.999, env_name='coinrun')
     obs = env.reset()
     for i in range(obs.shape[0]):
         frame = (obs[0,:]*255.)
-        imageio.imsave("crop" + str(i) + ".png",cutout(frame).T.byte())
+        imageio.imsave("cutout" + str(i) + ".png",cutout(frame).T.byte())
 
 def testColorMix():
     env = make_env(4, num_levels=10, gamma=0.999, env_name='coinrun')
     obs = env.reset()
     for i in range(obs.shape[0]):
         frame = (obs[0,:]*255.)
-        imageio.imsave("crop" + str(i) + ".png",testColorMix(frame).T.byte())
+        imageio.imsave("colorMix" + str(i) + ".png",colormix(frame).T.byte())
 
-testCutout()
+testCrop()
