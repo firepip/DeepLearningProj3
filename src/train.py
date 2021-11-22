@@ -255,7 +255,7 @@ while step < total_steps:
 
     # Update stats
     step += num_envs * num_steps
-    if (step - lastEval) >= eval_frequency:
+    if ((step - lastEval) >= eval_frequency or step >= total_steps):
         trainScore = evaluate(step, False)
         testScore = evaluate(step, True, augmentationModeValidation)
         print(f'Step: {step}\t({trainScore},{testScore})')
