@@ -17,5 +17,6 @@
  #Arg4 = Model
  #Arg5 = Data augmentation strategy, 0=identity, 1=crop, 2=translate, 3=cutout, 4=colormix, 5=random sequences of all
  #Arg6 = Number of features (output of IMPALA)
+ #Arg7 = Validation augmentation strategy. Can be 0-4 or not specified. When specified, this strategy will be removed from the random rounds of Arg5.
  python3 train.py 10 25000 starpilot 1 0 128
  echo "Done..."
