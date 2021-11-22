@@ -7,7 +7,7 @@
  #BSUB -R "rusage[mem=32GB]"
  #BSUB -o Output_%J.out
  #BSUB -e Error_%J.err
- #BSUB -u philse73@gmail.com
+ #BSUB -u patrickvibild@gmail.com
  #BSUB -B 
  #BSUB -N 
  echo "Running script..."
@@ -16,5 +16,5 @@
  #Arg3 = Game, default = starpilot
  #Arg4 = Model
  #Arg5 = Data augmentation strategy, 0=identity, 1=crop, 2=translate, 3=cutout, 4=colormix, 5=random sequences of all
- python3 train.py 25 100000 starpilot 1 5
+ python3 train.py 10 10000 starpilot 1 0
  echo "Done..."

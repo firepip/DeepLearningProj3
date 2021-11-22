@@ -2,6 +2,9 @@ import sys
 from random import randrange
 
 # Hyperparameters
+from src.Impala_5_layers import FiveBlocksImpala
+from src.Impala_leaky_relu import LeakyImpalaModel
+
 total_steps = 25e6
 if len(sys.argv) > 1:
     total_steps = int(int(sys.argv[1]) * 1e6)
@@ -102,7 +105,12 @@ from Impala import ImpalaModel
 
 if model == 1:
     encoder = ImpalaModel(in_channels, nr_features)
-# TODO add more models
+
+if model == 2:
+    encoder = LeakyImpalaModel(in_channels, nr_features)
+
+if model == 3:
+    encoder = FiveBlocksImpala(in_channels, nr_features)
 
 policy = Policy(encoder, nr_features, env.action_space.n)
 policy.cuda()
@@ -232,4 +240,4 @@ print('Average return:', total_reward)
 
 # Save frames as video
 frames = torch.stack(frames)
-imageio.mimsave(parameter_str + '_vid.mp4', frames, fps=25)
+imageio.mimsave('10000levels' + parameter_str + 'total_rewards' + total_reward + '_vid.mp4', frames, fps=25)
