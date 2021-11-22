@@ -46,11 +46,11 @@ class ImpalaBlock(nn.Module):
         x = self.res3(x)
         return x
 
-class ImpalaModel(nn.Module):
+class ImpalaReduced(nn.Module):
     def __init__(self,
                  in_channels, out_channels = 256,
                  **kwargs):
-        super(ImpalaModel, self).__init__()
+        super(ImpalaReduced, self).__init__()
         self.block1 = ImpalaBlock(in_channels=in_channels, out_channels=32)
         self.block2 = ImpalaBlock(in_channels=32, out_channels=64)
         self.fc = nn.Linear(in_features=64 * 8 * 8, out_features=out_channels)

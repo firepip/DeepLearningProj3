@@ -2,8 +2,9 @@ import sys
 from random import randrange
 
 # Hyperparameters
-from src.Impala_5_layers import FiveBlocksImpala
-from src.Impala_leaky_relu import LeakyImpalaModel
+from Impala_5_layers import FiveBlocksImpala
+from Impala_leaky_relu import LeakyImpalaModel
+from Impala_reduced import ImpalaReduced
 
 total_steps = 25e6
 if len(sys.argv) > 1:
@@ -42,7 +43,7 @@ if len(sys.argv) > 5:
 nr_features = 256
 if len(sys.argv) > 6:
     print("nr_features: " + sys.argv[6])
-    nr_features = sys.argv[6]
+    nr_features = int(sys.argv[6])
 useHoldoutAugmentation = False
 augmentationModeValidation = 0
 if len(sys.argv) > 7:
@@ -124,7 +125,7 @@ if model == 3:
     encoder = FiveBlocksImpala(in_channels, nr_features)
 
 if model == 4:
-    encoder = FiveBlocksImpala(in_channels, nr_features)
+    encoder = ImpalaReduced(in_channels, nr_features)
 
 policy = Policy(encoder, nr_features, env.action_space.n)
 policy.cuda()
