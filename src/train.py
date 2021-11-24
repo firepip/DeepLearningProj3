@@ -11,14 +11,15 @@ if len(sys.argv) > 1:
     total_steps = int(int(sys.argv[1]) * 1e6)
     print("Total steps: " + str(total_steps))
 num_envs = 64
-num_levels = 10000
+num_levels = 10
 if len(sys.argv) > 2:
     print("Num levels: " + sys.argv[2])
     num_levels = int(sys.argv[2])
 
+eval_frequency = 0.33e6
 num_steps = 256
 num_epochs = 3
-batch_size = 256  # , uncomment for low VRAM
+batch_size = 1024  # , uncomment for low VRAM
 eps = .2
 grad_eps = .5
 value_coef = .5
@@ -43,6 +44,13 @@ nr_features = 256
 if len(sys.argv) > 6:
     print("nr_features: " + sys.argv[6])
     nr_features = int(sys.argv[6])
+useHoldoutAugmentation = False
+augmentationModeValidation = 0
+if len(sys.argv) > 7:
+    print("Augmentation mode validation: " + sys.argv[7])
+    augmentationModeValidation = int(sys.argv[7])
+    useHoldoutAugmentation = True
+
 randomAugmentation = False
 
 if augmentationMode > 4:
@@ -135,18 +143,55 @@ storage = Storage(
     gamma
 )
 
-from augment import setRandomAugmentationMode, setAugmentationMode, augment
+def resetAugmentationMode():
+    if (randomAugmentation):
+        setRandomAugmentationMode(num_envs)
+    else:
+        setAugmentationMode(augmentationMode, num_envs)
+
+from augment import setHoldoutAgumentation, setRandomAugmentationMode, setAugmentationMode, augment
+
+if useHoldoutAugmentation:
+    setHoldoutAgumentation(augmentationModeValidation)
 
 
+def evaluate(step, testEnv, testEnvAugmentationMode = 0):
+    if testEnv:
+        setAugmentationMode(testEnvAugmentationMode, num_envs)
+    # Make evaluation environment
+    startlvl = 0
+    if testEnv:
+        startlvl = num_levels
+    eval_env = make_env(num_envs, start_level=startlvl, num_levels=num_levels, gamma=gamma, env_name=env_name)
+    obs = eval_env.reset()
 
-if (randomAugmentation):
-    setRandomAugmentationMode(num_envs)
-else:
-    setAugmentationMode(augmentationMode, num_envs)
+    total_reward = []
+
+    # Evaluate policy
+    policy.eval()
+    for _ in range(2048):
+        # Use policy
+        action, log_prob, value = policy.actMax(augment(obs))
+
+        # Take step in environment
+        obs, reward, done, info = eval_env.step(action)
+        total_reward.append(torch.Tensor(reward))
+
+    # Calculate average return
+    total_reward = torch.stack(total_reward).sum(0).mean(0)
+    if testEnv:
+        resetAugmentationMode()
+    return total_reward
+
+
+resetAugmentationMode()
+
+
 # Run training
 obs = augment(env.reset())
 # obs = augment(obs)
 step = 0
+lastEval = step
 while step < total_steps:
     # Use policy to collect data for num_steps steps
     policy.eval()
@@ -156,7 +201,6 @@ while step < total_steps:
 
         # Take step in environment
         next_obs, reward, done, info = env.step(action)
-
         # Update augmentation mode if we have random augmentations
         if (randomAugmentation and randrange(3) == 0):
             setRandomAugmentationMode(num_envs)
@@ -212,7 +256,11 @@ while step < total_steps:
 
     # Update stats
     step += num_envs * num_steps
-    print(f'Step: {step}\tMean reward: {storage.get_reward()}')
+    if ((step - lastEval) >= eval_frequency or step >= total_steps):
+        trainScore = evaluate(step, False)
+        testScore = evaluate(step, True, augmentationModeValidation)
+        print(f'Step: {step}\t({trainScore},{testScore})')
+        lastEval = step
 
 print('Completed training!')
 torch.save(policy.state_dict, 'checkpoint.pt')
