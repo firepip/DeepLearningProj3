@@ -53,7 +53,7 @@ class ImpalaReduced(nn.Module):
         super(ImpalaReduced, self).__init__()
         self.block1 = ImpalaBlock(in_channels=in_channels, out_channels=32)
         self.block2 = ImpalaBlock(in_channels=32, out_channels=64)
-        self.fc = nn.Linear(in_features=64 * 8 * 8, out_features=out_channels)
+        self.fc = nn.Linear(in_features=64 * 8 * 8 * 4, out_features=out_channels)
 
         self.output_dim = out_channels
         self.apply(xavier_uniform_init)
