@@ -18,7 +18,7 @@ class ResidualBlock(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
-        out = nn.ReLU()(x)
+        out = nn.ReLu()(x)
         out = self.conv1(out)
         return out + x
         
@@ -46,7 +46,7 @@ class FiveBlocksImpala(nn.Module):
         self.block3 = ImpalaBlock(in_channels=16, out_channels=32)
         self.block4 = ImpalaBlock(in_channels=32, out_channels=64)
         self.block5 = ImpalaBlock(in_channels=64, out_channels=128)
-        self.fc = nn.Linear(in_features=128 * 4, out_features=out_channels)
+        self.fc = nn.Linear(in_features=128 * 8 * 8, out_features=out_channels)
 
         self.output_dim = out_channels
         self.apply(xavier_uniform_init)
@@ -57,8 +57,8 @@ class FiveBlocksImpala(nn.Module):
         x = self.block3(x)
         x = self.block4(x)
         x = self.block5(x)
-        x = nn.ReLU()(x)
+        x = nn.ReLu()(x)
         x = Flatten()(x)
         x = self.fc(x)
-        x = nn.ReLU()(x)
+        x = nn.ReLu()(x)
         return x
