@@ -16,7 +16,7 @@ if len(sys.argv) > 2:
     print("Num levels: " + sys.argv[2])
     num_levels = int(sys.argv[2])
 
-eval_frequency = 1e6
+eval_frequency = 0.33e6
 num_steps = 256
 num_epochs = 3
 batch_size = 1024  # , uncomment for low VRAM
@@ -292,7 +292,7 @@ for _ in range(2048):
 # Calculate average return
 total_reward = torch.stack(total_reward).sum(0).mean(0)
 print('Average return:', total_reward)
-print('Generating video' + parameter_str + 'total_reward' + total_reward + '_vid.mp4')
+print('Generating video' + parameter_str + '_vid.mp4')
 # Save frames as video
 frames = torch.stack(frames)
-imageio.mimsave(parameter_str + 'total_reward' + total_reward + '_vid.mp4', frames, fps=25)
+imageio.mimsave(parameter_str + '_vid.mp4', frames, fps=25)
