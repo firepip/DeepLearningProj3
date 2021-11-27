@@ -165,6 +165,7 @@ def evaluate(step, testEnv, testEnvAugmentationMode = 0):
     eval_env = make_env(num_envs, start_level=startlvl, num_levels=num_levels, gamma=gamma, env_name=env_name)
     obs = eval_env.reset()
 
+
     total_reward = []
 
     # Evaluate policy

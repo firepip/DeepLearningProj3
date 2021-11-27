@@ -3,46 +3,37 @@ import torch.nn as nn
 import torch.nn.functional as F
 from utils import make_env, Storage, orthogonal_init
 
+
 class Flatten(nn.Module):
     def forward(self, x):
         return x.view(x.size(0), -1)
 
-
-class Encoder(nn.Module):
-  def __init__(self, in_channels, feature_dim):
-    super().__init__()
-    self.layers = nn.Sequential(
-        nn.Conv2d(in_channels=in_channels, out_channels=32, kernel_size=8, stride=4), nn.ReLU(),
-        nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2), nn.ReLU(),
-        nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1), nn.ReLU(),
-        Flatten(),
-        nn.Linear(in_features=1024, out_features=feature_dim), nn.ReLU()
-    )
-    self.apply(orthogonal_init)
-
-  def forward(self, x):
-    return self.layers(x)
 
 def xavier_uniform_init(module, gain=1.0):
     if isinstance(module, nn.Linear) or isinstance(module, nn.Conv2d):
         nn.init.xavier_uniform_(module.weight.data, gain)
         nn.init.constant_(module.bias.data, 0)
     return module
-    
+
+
 class ResidualBlock(nn.Module):
     def __init__(self,
                  in_channels):
         super(ResidualBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
-        out = nn.ReLU()(x)
+        out = nn.LeakyReLU()(x)
         out = self.conv1(out)
-        out = nn.ReLU()(out)
+        out = nn.LeakyReLU()(out)
         out = self.conv2(out)
+        out = nn.LeakyReLU()(out)
+        out = self.conv3(out)
         return out + x
-        
+
+
 class ImpalaBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ImpalaBlock, self).__init__()
@@ -57,9 +48,10 @@ class ImpalaBlock(nn.Module):
         x = self.res2(x)
         return x
 
+
 class ImpalaModel(nn.Module):
     def __init__(self,
-                 in_channels, out_channels = 256,
+                 in_channels, out_channels=256,
                  **kwargs):
         super(ImpalaModel, self).__init__()
         self.block1 = ImpalaBlock(in_channels=in_channels, out_channels=16)
@@ -74,7 +66,7 @@ class ImpalaModel(nn.Module):
         x = self.block1(x)
         x = self.block2(x)
         x = self.block3(x)
-        x = nn.ReLU()(x)
+        x = nn.LeakyReLU()(x)
         x = Flatten()(x)
         x = self.fc(x)
         x = nn.ReLU()(x)
