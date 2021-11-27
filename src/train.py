@@ -160,9 +160,11 @@ def evaluate(step, testEnv, testEnvAugmentationMode = 0):
         setAugmentationMode(testEnvAugmentationMode, num_envs)
     # Make evaluation environment
     startlvl = 0
+    numlevels = num_levels
     if testEnv:
         startlvl = num_levels
-    eval_env = make_env(num_envs, start_level=startlvl, num_levels=num_levels, gamma=gamma, env_name=env_name)
+        numlevels = 100000
+    eval_env = make_env(num_envs, start_level=startlvl, num_levels=numlevels, gamma=gamma, env_name=env_name)
     obs = eval_env.reset()
 
 
