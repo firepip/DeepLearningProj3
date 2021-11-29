@@ -16,7 +16,8 @@ if len(sys.argv) > 2:
     print("Num levels: " + sys.argv[2])
     num_levels = int(sys.argv[2])
 
-eval_frequency = 0.33e6
+eval_frequency_min = 0.33e6
+eval_frequency_max = 2e6
 num_steps = 256
 num_epochs = 3
 batch_size = 1024  # , uncomment for low VRAM
@@ -156,8 +157,7 @@ if useHoldoutAugmentation:
 
 
 def evaluate(step, testEnv, testEnvAugmentationMode = 0):
-    if testEnv:
-        setAugmentationMode(testEnvAugmentationMode, num_envs)
+    setAugmentationMode(testEnvAugmentationMode, num_envs)
     # Make evaluation environment
     startlvl = 0
     numlevels = num_levels
@@ -259,8 +259,8 @@ while step < total_steps:
 
     # Update stats
     step += num_envs * num_steps
-    if ((step - lastEval) >= eval_frequency or step >= total_steps):
-        trainScore = evaluate(step, False)
+    if ((lastEval < 1e6 and (step - lastEval) >= eval_frequency_min) or ((step - lastEval) >= eval_frequency_max) or step >= total_steps):
+        trainScore = evaluate(step, False, augmentationModeValidation)
         testScore = evaluate(step, True, augmentationModeValidation)
         print(f'Step: {step}\t({trainScore},{testScore})')
         lastEval = step
