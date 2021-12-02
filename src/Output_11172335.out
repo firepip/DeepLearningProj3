@@ -1,0 +1,20 @@
+Running script...
+Total steps: 10000000
+Num levels: 1
+Game: jumper
+Model: 1
+Augmentation mode: 0
+nr_features: 512
+P_10_1_jumper_1_0_512
+Step: 344064	(20480.0,1.25)
+Step: 688128	(20480.0,2.34375)
+Step: 1032192	(20480.0,1.40625)
+Step: 3047424	(20480.0,0.9375)
+Step: 5062656	(20480.0,1.40625)
+Step: 7077888	(20480.0,2.65625)
+Step: 9093120	(20480.0,0.9375)
+Step: 10010624	(20480.0,1.5625)
+Completed training!
+Average return: tensor(0.)
+Generating videoP_10_1_jumper_1_0_512_vid.mp4
+Done...
