@@ -2,7 +2,7 @@
  #BSUB -q gpuv100
  #BSUB -J MoreRandom
  #BSUB -gpu "num=1"
- #BSUB -n 6
+ #BSUB -n 1
  #BSUB -W 24:00 
  #BSUB -R "rusage[mem=32GB]"
  #BSUB -o Output_%J.out
@@ -18,5 +18,5 @@
  #Arg5 = Data augmentation strategy, 0=identity, 1=crop, 2=translate, 3=cutout, 4=colormix, 5=random sequences of all
  #Arg6 = Number of features (output of IMPALA)
  #Arg7 = Validation augmentation strategy. Can be 0-4 or not specified. When specified, this strategy will be removed from the random rounds of Arg5.
- python3 train.py 10 1000 starpilot 1 0 512 0
+ python3 train.py 10 1 coinrun 1 0 512 0
  echo "Done..."

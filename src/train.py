@@ -69,7 +69,6 @@ env = make_env(num_envs, num_levels=num_levels, gamma=gamma, env_name=env_name)
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from utils import make_env, Storage, orthogonal_init
 
 
@@ -295,7 +294,6 @@ for _ in range(2048):
 # Calculate average return
 total_reward = torch.stack(total_reward).sum(0).mean(0)
 print('Average return:', total_reward)
-print('Generating video' + parameter_str + '_vid.mp4')
 # Save frames as video
 frames = torch.stack(frames)
-imageio.mimsave(parameter_str + '_vid.mp4', frames, fps=25)
+imageio.mimsave('vid.mp4', frames, fps=25)
