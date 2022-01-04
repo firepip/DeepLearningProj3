@@ -5,7 +5,7 @@ class Flatten(nn.Module):
     def forward(self, x):
         return x.view(x.size(0), -1)
 
-def xavier_uniform_init(module, gain=1.0):
+def xavier_uniform_initializer(module, gain=1.0):
     if isinstance(module, nn.Linear) or isinstance(module, nn.Conv2d):
         nn.init.xavier_uniform_(module.weight.data, gain)
         nn.init.constant_(module.bias.data, 0)
@@ -48,9 +48,8 @@ class LeakyImpalaModel(nn.Module):
         self.block2 = ImpalaBlock(in_channels=16, out_channels=32)
         self.block3 = ImpalaBlock(in_channels=32, out_channels=64)
         self.fc = nn.Linear(in_features=64 * 8 * 8, out_features=out_channels)
-
         self.output_dim = out_channels
-        self.apply(xavier_uniform_init)
+        self.apply(xavier_uniform_initializer)
 
     def forward(self, x):
         x = self.block1(x)
